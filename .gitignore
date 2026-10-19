@@ -1,3 +1,8 @@
-.DS_store
+# NovelTracker PAM workspace
+NovelTracker/PAM/
 
+# macOS metadata files
+.DS_Store
+
+# Archived files and projects
 archive/
