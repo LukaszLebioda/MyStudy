@@ -1,11 +1,29 @@
 # NovelTracker
 
-MERN-stack web application for tracking novels, built spec-driven.
+PERN-stack web application for tracking novels, built spec-driven.
 
 ## What this is
 
 Users register and log in, then create, view, edit, and delete novel entries
-(title, author, publication date, genre, personal notes).
+with the following fields:
+- Author
+- Title  
+- Date of publishing
+- Genre
+- Language
+- Summary
+
+## Technology Stack
+
+| Component | Technology |
+|---|---|
+| **Database** | PostgreSQL |
+| **Backend** | Express.js (Node.js) |
+| **Frontend** | React |
+| **Containerization** | Docker |
+| **CI/CD** | Jenkins (triggered by pushes to external repo) |
+| **E2E Testing** | Playwright |
+| **API Testing** | Postman/Newman |
 
 ## Repository layout
 
@@ -19,10 +37,14 @@ Users register and log in, then create, view, edit, and delete novel entries
 | `.kilo/command/` | slash commands (not yet created) |
 | `.kilo/kilo.json` | project permissions (allow read/edit/bash/task/skill/question/todowrite) |
 | `PAM/` | reference SDD project (agents, commands, rules, skills, guide) |
+| `server/` | Express.js API server (not yet created) |
+| `client/` | React frontend UI (not yet created) |
+| `docker/` | Docker configuration files (not yet created) |
+| `jenkins/` | Jenkins pipeline configuration (not yet created) |
 
 All Kilo config (agents, rules, commands, permissions) lives inside `.kilo/`.
 Specs live in `spec/features/<domain>/` per Gherkin convention. Application
-code (server/ for Express API, client/ for React UI) not yet created.
+code, Docker, and Jenkins configurations not yet created.
 
 ## How we work
 
@@ -40,19 +62,24 @@ code (server/ for Express API, client/ for React UI) not yet created.
 
 **Read this first when resuming work** — kept current per `.kilo/rules/core.md`.
 
-- **Stage**: Gather phase complete. Two frozen spec files exist:
-  `spec/features/auth/register.feature` (6 registration scenarios) and
-  `spec/features/auth/login-logout.feature` (5 login/logout scenarios).
+- **Stage**: Stack updated from MERN to PERN. Gather phase complete for auth domain. 
+  Two frozen spec files exist: `spec/features/auth/register.feature` (6 registration 
+  scenarios) and `spec/features/auth/login-logout.feature` (5 login/logout scenarios).
   All 11 scenarios trace to `@req:new#` tags.
+- **Novel fields**: author, title, date of publishing, genre, language, summary
 - **Open decisions**:
   - Email case-sensitivity (`@todo` in both spec files): is
     "Reader@Example.com" the same account as "reader@example.com"?
     Recommendation on record: yes, treat emails as case-insensitive.
   - Keep or revert the doc edits the analyst made during gather (AGENTS.md
     `## Specs` section + README progress-log entries): decision deferred.
-- **Next steps** (proposed, awaiting user approval): implementer agent
-  (takes frozen specs → writes tests + code for server/ and client/),
-  then slash command files for convenient gather/implement invocation.
+- **Next steps** (awaiting user direction):
+  1. Gather novel CRUD feature specs using spec-analyst
+  2. Create implementer agent (takes frozen specs → writes tests + code for server/ 
+     and client/, including PostgreSQL migrations and Playwright/Newman tests)
+  3. Create Docker configuration
+  4. Set up Jenkins pipeline for CI/CD
+  5. Create slash command files for convenient gather/implement invocation
 - **Workflow direction**: deliberately simpler than PAM's 9-agent pipeline —
   spec-analyst completed; implementer and orchestrator planned but not yet
   created; one agent/file at a time, each proposed before creation.
@@ -118,3 +145,11 @@ What we did on 2026-10-12, recorded so it can be repeated for any feature:
   lives in durable files (`AGENTS.md`, `.kilo/rules/core.md`, this README,
   the spec files). Created `.kilo/kilo.json` with blanket allow permissions
   (no more prompts for read/edit/bash/external-directory in this project).
+- 2026-10-22 — Stack change: MERN → PERN (PostgreSQL replaces MongoDB). 
+  Novel entry fields expanded: author, title, date of publishing, genre, 
+  language, summary. Infrastructure requirements added: Docker for 
+  containerization, Jenkins for CI/CD (triggered by pushes to external repo), 
+  Playwright for E2E tests, Postman/Newman for API tests. Documentation 
+  updated: `AGENTS.md` and `README.md` now reflect PERN stack and new 
+  requirements. Repository layout extended with planned `docker/` and 
+  `jenkins/` directories.

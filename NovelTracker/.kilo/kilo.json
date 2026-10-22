@@ -10,6 +10,7 @@
       "find *": "allow",
       "git *": "allow",
       "npm *": "allow",
+      "pwd": "allow",
       "*": "ask"
     },
     "glob": "allow",

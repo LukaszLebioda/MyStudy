@@ -3,13 +3,21 @@
 ## Project overview
 
 NovelTracker is a web application for tracking novels. Users register and log
-in, then create, view, edit, and delete novel entries (title, author,
-publication date, genre, personal notes).
+in, then create, view, edit, and delete novel entries with the following
+fields: author, title, date of publishing, genre, language, summary.
 
 ## Stack
 
-MERN: MongoDB (database), Express.js (API server), React (frontend UI),
+PERN: PostgreSQL (database), Express.js (API server), React (frontend UI),
 Node.js (runtime).
+
+## Infrastructure & Testing
+
+- **Containerization**: Docker (application runs in containers)
+- **CI/CD**: Jenkins (automated builds triggered by pushes to external repo)
+- **Testing**: 
+  - Playwright (end-to-end UI tests)
+  - Postman/Newman (API tests)
 
 ## Specs
 
