@@ -6,12 +6,25 @@ PERN-stack web application for tracking novels, built spec-driven.
 
 Users register and log in, then create, view, edit, and delete novel entries
 with the following fields:
+
+**Required:**
 - Author
-- Title  
-- Date of publishing
-- Genre
-- Language
-- Summary
+- Polish title
+- Original title
+- Year of publishing (4-digit year)
+- Genre (predefined dropdown)
+
+**Optional:**
+- Picture (uploaded from local file system; JPEG/PNG/WebP/GIF, max 5 MB;
+  default book icon shown if not provided)
+- Description (shown as a short list preview, ~first 10 words, with a "See
+  more" pop-up for the full scrollable text; "no description yet" if empty)
+
+Users can only manage their own novels. The novel list is sorted A-Z by default
+and can be filtered by author surname (case-insensitive substring), Polish
+title, or year of publishing. Emails are treated case-insensitively. There is
+no separate details view — the list shows every field. The same book may exist
+in several users' collections as separate entries; isolation is per entry.
 
 ## Technology Stack
 
@@ -31,8 +44,10 @@ with the following fields:
 |---|---|
 | `AGENTS.md` | always-loaded baseline for AI agents (project description, stack, spec layout) |
 | `README.md` | this file: human-friendly log of what we do and why |
-| `spec/features/<domain>/` | frozen Gherkin specs (auth: register.feature, login-logout.feature) |
-| `.kilo/agent/` | AI agent definitions (spec-analyst.md) |
+| `spec/features/<domain>/` | frozen Gherkin specs (auth: register.feature, login-logout.feature; novels: create-novel.feature, view-novels.feature, edit-novel.feature, delete-novel.feature) |
+| `spec/domains/<domain>/` | `requirements.md` (numbered EARS rules) and `ui/` (low-fidelity UI notes) |
+| `.kilo/agent/` | AI agent definitions (spec-analyst.md, spec-critic.md) |
+| `.kilo/suspended-agents/` | reference-only agents not loaded (spec-orchestrator.md — future "foreman") |
 | `.kilo/rules/` | always-on rules every agent session loads (core.md) |
 | `.kilo/command/` | slash commands (not yet created) |
 | `.kilo/kilo.json` | project permissions (allow read/edit/bash/task/skill/question/todowrite) |
@@ -53,33 +68,53 @@ code, Docker, and Jenkins configurations not yet created.
   the agent suggests.
 - New files are proposed first (content shown) and created only after the
   user approves.
+- Rules are live: during any interaction the agent watches for conventions,
+  decisions, or recurring corrections and proposes rule updates to
+  `.kilo/rules/core.md` (applied only after approval).
+- Spec-driven loop: the user states requirements in plain language in chat →
+  the agent may ask questions or suggest improvements → the `spec-analyst`
+  agent converts them to Gherkin → the user reviews and freezes the file.
+  The agent does not invent feature descriptions.
 - Known Kilo 7.8.8 bug: write-time config validator crashes ("No context
   found for instance") on Markdown config files — even the documented
   example. Harmless noise unless agents fail to register after a session
   restart.
 
-## Current state & open decisions
+## Current state & decisions
 
 **Read this first when resuming work** — kept current per `.kilo/rules/core.md`.
 
-- **Stage**: Stack updated from MERN to PERN. Gather phase complete for auth domain. 
-  Two frozen spec files exist: `spec/features/auth/register.feature` (6 registration 
-  scenarios) and `spec/features/auth/login-logout.feature` (5 login/logout scenarios).
-  All 11 scenarios trace to `@req:new#` tags.
-- **Novel fields**: author, title, date of publishing, genre, language, summary
-- **Open decisions**:
-  - Email case-sensitivity (`@todo` in both spec files): is
-    "Reader@Example.com" the same account as "reader@example.com"?
-    Recommendation on record: yes, treat emails as case-insensitive.
-  - Keep or revert the doc edits the analyst made during gather (AGENTS.md
-    `## Specs` section + README progress-log entries): decision deferred.
+- **Stage**: Gather phase complete for both auth and novels domains. Stack is PERN.
+  Six frozen spec files exist (67 scenarios, all tagged to canonical
+  requirements `@req:<domain>#REQ-nnn`):
+  - Auth (15): `spec/features/auth/register.feature` (9 scenarios),
+    `spec/features/auth/login-logout.feature` (6 scenarios)
+  - Novels (52): `spec/features/novels/create-novel.feature` (21),
+    `spec/features/novels/view-novels.feature` (16),
+    `spec/features/novels/edit-novel.feature` (11),
+    `spec/features/novels/delete-novel.feature` (4)
+- **Requirements (PAM-style):** `spec/domains/auth/requirements.md`
+  (REQ-001…REQ-012) and `spec/domains/novels/requirements.md`
+  (REQ-001…REQ-039). The `.feature` scenarios are examples tracing to these
+  numbered rules.
+- **Resolved decisions** (no open `@todo` remain in any spec):
+  - Emails are case-insensitive (normalized on registration and login).
+  - Author-surname filter is a case-insensitive substring match.
+  - Genre is a predefined dropdown. Current list: Fantasy, Science Fiction,
+    Horror, Thriller, Mystery, Crime, Romance, Historical, Adventure, Literary,
+    Drama, Poetry, Non-fiction, Biography, Other (revisable).
+  - Picture uploads: JPEG/PNG/WebP/GIF, max 5 MB.
+  - No separate details view: the list shows all fields at once. Description is
+    a short inline preview (~first 10 words) with a "See more" scrollable
+    pop-up for the full text.
+  - The same book may exist in multiple users' collections as separate entries;
+    isolation is per entry (users only CRUD their own entries).
 - **Next steps** (awaiting user direction):
-  1. Gather novel CRUD feature specs using spec-analyst
-  2. Create implementer agent (takes frozen specs → writes tests + code for server/ 
+  1. Create implementer agent (takes frozen specs → writes tests + code for server/ 
      and client/, including PostgreSQL migrations and Playwright/Newman tests)
-  3. Create Docker configuration
-  4. Set up Jenkins pipeline for CI/CD
-  5. Create slash command files for convenient gather/implement invocation
+  2. Create Docker configuration
+  3. Set up Jenkins pipeline for CI/CD
+  4. Create slash command files for convenient gather/implement invocation
 - **Workflow direction**: deliberately simpler than PAM's 9-agent pipeline —
   spec-analyst completed; implementer and orchestrator planned but not yet
   created; one agent/file at a time, each proposed before creation.
@@ -88,8 +123,10 @@ code, Docker, and Jenkins configurations not yet created.
 
 What we did on 2026-10-12, recorded so it can be repeated for any feature:
 
-1. The user describes the feature in plain language in the chat window —
+1. **The user describes the feature in plain language in the chat window** —
    e.g. "Users register with email and password, log in, and log out".
+   **CRITICAL: The user MUST provide the feature description. The agent does NOT
+   invent or create feature descriptions on its own.**
 2. That description is handed to the spec-analyst agent
    (`.kilo/agent/spec-analyst.md`), which may ask clarifying questions in
    plain chat before writing anything.
@@ -153,3 +190,162 @@ What we did on 2026-10-12, recorded so it can be repeated for any feature:
   updated: `AGENTS.md` and `README.md` now reflect PERN stack and new 
   requirements. Repository layout extended with planned `docker/` and 
   `jenkins/` directories.
+- 2026-10-23 — Updated interaction workflow rules in `.kilo/rules/core.md`:
+  agents must check `.kilo/kilo.json` at session start for permissions, user
+  provides feature descriptions (agents don't invent them), spec-analyst
+  converts requirements to Gherkin. Novel fields finalized: required (author,
+  Polish title, original title, year, genre), optional (picture from local
+  upload with default book icon, description with "no description yet" default).
+  Gathered novels domain specs: `spec/features/novels/novel-crud.feature`
+  (36 scenarios covering CREATE, READ, UPDATE, DELETE with authentication,
+  user isolation, validation, filtering by author/title/year, A-Z default
+  sorting). The novels feature was frozen — changes go through spec-analyst
+  revise mode.
+- 2026-10-23 — Added a "Live rules" section to `.kilo/rules/core.md`: during
+  any interaction the agent watches for conventions/decisions/recurring
+  corrections and proposes rule updates (applied only after approval).
+- 2026-10-23 — Split `spec/features/novels/novel-crud.feature` into four
+  narrower feature files via spec-analyst revise mode: `create-novel.feature`
+  (12), `view-novels.feature` (12), `edit-novel.feature` (8),
+  `delete-novel.feature` (4); deleted the combined file. Scenarios preserved
+  verbatim, each file given a scope-adapted `# Analyst assumptions:` block.
+- 2026-10-23 — Resolved all open decisions and applied them to the specs
+  (spec-analyst revise mode). No `@todo` remain:
+  - Emails are case-insensitive; added `@req:new#register-email-case-insensitive`
+    and `@req:new#login-email-case-insensitive` scenarios.
+  - Author-surname filter is a case-insensitive substring match (assumption
+    updated; scenarios unchanged).
+  - Genre is a predefined dropdown (list recorded in assumptions); example
+    genre values normalized to valid list entries; added
+    `@req:new#novel-create-invalid-genre`.
+  - Picture uploads limited to JPEG/PNG/WebP/GIF, max 5 MB; added
+    `@req:new#novel-create-picture-invalid-format` and
+    `@req:new#novel-create-picture-too-large`.
+  A regression during the revise (the `logout-when-signed-out` scenario was
+  dropped from `login-logout.feature`) was caught and restored. Final spec
+  totals: 52 scenarios across 6 files (auth 13, novels 39).
+- 2026-10-23 — Two user-directed spec revisions (spec-analyst revise mode):
+  1. Removed the separate details view. The list shows all fields for every
+     novel; the description is a short inline preview (~first 10 words) plus a
+     "See more" control opening a scrollable pop-up with the full text.
+     `view-novels.feature` dropped the 4 `novel-view-single-*` scenarios and
+     gained 6 list scenarios (all-fields, preview-truncated, see-more-popup,
+     short-description, no-description, no-picture-default-icon).
+  2. Clarified per-entry (not per-book) isolation: the same book can exist in
+     several users' collections as separate entries. The cross-user scenarios
+     `novel-list-only-own-novels`, `novel-update-other-user-novel-denied`, and
+     `novel-delete-other-user-novel-denied` were rewritten so both users own a
+     copy of the same book and one user's action never touches another's entry.
+  Final spec totals: 54 scenarios across 6 files (auth 13, novels 41).
+- 2026-10-23 — Added a "Design inputs" rule to `.kilo/rules/core.md`: written
+  requirements/spec docs are gather-stage inputs (converted to `.feature` by
+  the spec-analyst); UI designs/wireframes are client-implementation inputs
+  (stored under `spec/domains/<domain>/ui/` when kept in-repo). Neither
+  overrides a frozen `.feature`. Removed the now-redundant "READ scenarios
+  (list view)" separator comment from `view-novels.feature`.
+- 2026-10-23 — Decided to adopt a PAM-inspired multi-agent pipeline (PAM
+  option C) instead of a single do-everything implementer: agents for
+  specific stages (critique, design, test-authoring, implementation, review,
+  documentation) plus an orchestrator. Roster proposed; agents to be created
+  one at a time.
+- 2026-10-23 — Introduced the PAM-style requirements layer. Added
+  `spec/domains/<domain>/requirements.md` (numbered EARS rules, English) as
+  the source of truth for business rules, with `.feature` scenarios tracing to
+  `@req:<domain>#REQ-nnn`. Created `spec/domains/auth/requirements.md`
+  (REQ-001…REQ-012). Recorded the "automatic driver / foreman" (PAM
+  orchestrator + chain command) in `.kilo/rules/core.md` as a documented
+  FUTURE option — not adopted yet; we keep manual step-by-step control.
+  Novels requirements drafted and awaiting approval before creation; tags not
+  yet re-pointed.
+- 2026-10-23 — Requirements layer completed and tags re-pointed. Created
+  `spec/domains/novels/requirements.md` (REQ-001…REQ-033). Wrote the two-layer
+  model into `.kilo/rules/core.md` and `AGENTS.md` (requirements = rules of
+  record; `.feature` = examples tracing to them), and drafted the flow: the
+  user provides plain-English input → spec-analyst writes/updates the numbered
+  requirements → the user approves → spec-analyst writes the tagged Gherkin →
+  the user freezes it. Gave the `spec-analyst` scope over
+  `spec/domains/**/requirements.md` (so it owns both layers) and updated its
+  description. Re-pointed all 54 scenario tags from `@req:new#…` to canonical
+  `@req:auth#REQ-nnn` /   `@req:novels#REQ-nnn` (56 tag lines; `novel-create-success`
+  carries three). No `@req:new#` remains in `spec/features/`.
+- 2026-10-23 — Step 1 of UI refinement: updated
+  `spec/domains/novels/requirements.md` — genre is now one-or-more
+  (REQ-001/006/008 reworded), and added REQ-034 (mark a novel as a favourite,
+  shown with an asterisk), REQ-035 (filter to favourites only), REQ-036
+  (clicking a picture opens a larger view). Gherkin scenarios for the three
+  new rules follow in a later step (not yet written). Presentation-only wishes
+  (plain text boxes, numeric year field, thumbnail picture, growing
+  description box) are deferred to a UI design note, not Gherkin.
+- 2026-10-23 — Step 2: wrote the Gherkin examples for the new rules (spec-analyst
+  revise mode). `create-novel.feature`: +1 "more than one genre" scenario and
+  the "no genre selected" wording (16 total). `edit-novel.feature`: +3 favourite
+  scenarios — mark, unmark, and favourite-belongs-to-owner (11 total).
+  `view-novels.feature`: +2 scenarios — favourites-only filter and
+  click-picture-opens-larger-view (16 total). Updated the traceability table in
+  `spec/domains/novels/requirements.md` (REQ-001, REQ-008, REQ-034, REQ-035,
+  REQ-036). Final spec totals: 60 scenarios across 6 files (auth 13, novels 47).
+- 2026-10-23 — Step 3: captured the presentation-only wishes as UI design
+  notes (proposed and approved before creation). Created
+  `spec/domains/novels/ui/novel-form.ui.md` (field controls: text boxes for
+  author/both titles, numeric year field with spinner, multi-select genre,
+  thumbnail picture, auto-growing description box, favourite toggle) and
+  `spec/domains/novels/ui/novel-list.ui.md` (filter bar, favourites filter,
+  per-row thumbnail + preview, Edit/Delete actions). Both are marked
+  visual-only, not the behavioural source of truth. `AGENTS.md` now documents
+  the third spec layer (`ui/`).
+- 2026-10-23 — Step 4: started the PAM-inspired pipeline (option C), one agent
+  at a time. Created the active `spec-critic` agent (`.kilo/agent/spec-critic.md`)
+  — PAM-exact: always writes a per-feature
+  `spec/features/<domain>/<feature-slug>.review.md` (Blocking issues, Warnings,
+  Edge cases missed, Coverage gaps, Suggested scenarios; verdict
+  `Approved for design` / `Changes required`); never edits specs; the review
+  file gates the design stage. Added the SUSPENDED
+  orchestrator ("foreman") at `.kilo/suspended-agents/spec-orchestrator.md` —
+  deliberately outside `.kilo/agent/` so Kilo does not load it. Documented the
+  agent roster and pipeline in `AGENTS.md`. Next pipeline agents to create:
+  architect, test-author, implementer, reviewer, documenter.
+- 2026-10-23 — Step 5: created the slash commands for the existing agents
+  (`.kilo/command/spec-gather.md`, `.kilo/command/spec-critique.md`) — this is
+  the normal way stages run (`/spec-critique <domain>/<feature-slug>`). Ran the
+  critic on all six features, producing per-feature review files:
+  `register.review.md`, `login-logout.review.md` (both Approved for design, 0
+  blocking), `create-novel.review.md` (**Changes required**, 1 blocking),
+  `view-novels.review.md`, `edit-novel.review.md`, `delete-novel.review.md`
+  (Approved for design). Blocking issue: the create form UI note adds a
+  favourite control with no backing rule/scenario. Awaiting decision.
+- 2026-10-23 — Resolved the critique. Decision: mark a novel as a favourite at
+  creation is allowed (option A). Routed fixes through the spec-analyst:
+  novels requirements gained REQ-037 (favourite at creation), REQ-038 (valid
+  picture stored/shown), REQ-039 (provided description stored/shown), and
+  REQ-007 was made explicit (4-digit year 1000–9999). Added scenarios:
+  create-novel favourite-at-creation, boundary-year outline (1000/9999),
+  exactly-5 MB picture, mixed allowed+disallowed genres, whitespace-only author;
+  re-tagged picture/description success scenarios; aligned genre and year
+  error messages. Auth: added exactly-8-character password and whitespace-only
+  email scenarios; made logout-when-signed-out observable. UI note fixed
+  (favourite backed by REQ-037; removed list-only enlarge from the form; Cancel
+  marked as navigation). Final totals: 67 scenarios (auth 15, novels 52); 39
+  novels REQs + 12 auth REQs. Re-ran the critic on the four changed features —
+  `create-novel`, `edit-novel`, `register`, `login-logout` — all now
+  **Approved for design**, 0 blocking; only minor warnings remain.
+- 2026-10-23 — Step 6: created the design stage. Added the `spec-architect`
+  agent (`.kilo/agent/spec-architect.md`) and the `spec-design` command. The
+  architect turns an `Approved for design` feature into
+  `spec/features/<domain>/<feature-slug>.design.md` (API contract, PostgreSQL
+  data model, UI plan, test plan, traceability) and maintains
+  `spec/domains/<domain>/data-model.md`; it never edits specs or code. Reviewed
+  answers on workflow: describe the domain broadly first then per feature;
+  critique is per feature (PAM); `--revise` is the analyst's "change a frozen
+  spec" mode; the orchestrator would normally chain stages automatically but we
+  trigger commands manually; PAM accepts a large documentation set by design.
+- 2026-10-23 — Step 7: ran the design stage (spec-architect) on both domains.
+  Wrote per-feature design docs — `spec/features/auth/{register,login-logout}.design.md`
+  and `spec/features/novels/{create-novel,view-novels,edit-novel,delete-novel}.design.md`
+  — plus shared data models `spec/domains/auth/data-model.md` and
+  `spec/domains/novels/data-model.md`. Auth: `users` + `sessions` (hashed
+  password, case-insensitive email), endpoints register/login/logout/me, httpOnly
+  session cookie, single generic login error. Novels: `novels` (FK to user,
+  year check 1000–9999, favourite flag, picture ref) + `novel_genres` join table
+  (chosen over a Postgres array), endpoints list/create/get/patch/delete/picture/
+  genres, per-entry ownership scoping, indexes for A-Z, year, favourites, and
+  author/title search. No spec-change blockers.

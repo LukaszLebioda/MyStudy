@@ -3,8 +3,9 @@
 #   by user-directed revise on 2026-10-19. The scenarios below were gathered
 #   2026-10-12 from the user prompt ("Users register with email and password,
 #   log in, and log out") in new-feature mode and are preserved verbatim:
-#   content, tags, and @req:new# ids unchanged. The registration scenarios
-#   now live in register.feature.
+#   content unchanged; the tags now point to the canonical ids
+#   `@req:auth#REQ-nnn`. The registration scenarios now live in
+#   register.feature.
 # Domain matched: auth (novels has no docs yet and is out of scope;
 #   registration behavior lives in the sibling register.feature).
 # Intent (from the original prompt): a user who has registered signs in with
@@ -28,9 +29,9 @@
 #   prompt says "email and password".
 # [SCOPE-OUT per prompt] Roles, admin users, and any novels CRUD behavior —
 #   the prompt has a single user actor; novels are a separate future feature.
-# @todo Email case-sensitivity is undecided (is "Reader@Example.com" the same
-#   account as "reader@example.com"?); scenarios use lowercase emails only
-#   until the user decides.
+# [DECIDED] Emails are treated case-insensitively: they are normalized (for
+#   example, lowercased) on registration and login, so "Reader@Example.com"
+#   and "reader@example.com" are the same account.
 
 Feature: User login and logout
   As a registered reader using NovelTracker,
@@ -40,14 +41,14 @@ Feature: User login and logout
   Background:
     Given the user database is empty
 
-  @req:new#login-success
+  @req:auth#REQ-008
   Scenario: Log in with the registered email and the correct password
     Given a user account exists with email "reader@example.com" and password "correct-horse"
     When the user logs in with email "reader@example.com" and password "correct-horse"
     Then the user is signed in
     And the user sees a log out action in the app
 
-  @req:new#login-wrong-password
+  @req:auth#REQ-009
   Scenario: Log in with the wrong password
     Given a user account exists with email "reader@example.com" and password "correct-horse"
     When the user tries to log in with email "reader@example.com" and password "wrong-horse"
@@ -55,7 +56,7 @@ Feature: User login and logout
     And the user sees an error that the email or password was invalid
     And the user remains signed out
 
-  @req:new#login-unknown-email
+  @req:auth#REQ-010
   Scenario: Log in with an email that has no account
     Given no user account exists with email "ghost@example.com"
     When the user tries to log in with email "ghost@example.com" and password "whatever-pass"
@@ -63,7 +64,7 @@ Feature: User login and logout
     And the user sees an error that the email or password was invalid
     And the user remains signed out
 
-  @req:new#logout-success
+  @req:auth#REQ-011
   Scenario: Log out of an active session
     Given a user account exists with email "reader@example.com" and password "correct-horse"
     And the user is signed in as "reader@example.com"
@@ -71,9 +72,16 @@ Feature: User login and logout
     Then the user is signed out
     And the app shows the login screen
 
-  @req:new#logout-when-signed-out
+  @req:auth#REQ-007
+  Scenario: Log in with a differently-cased email and the correct password
+    Given a user account exists with email "reader@example.com" and password "correct-horse"
+    When the user logs in with email "Reader@Example.com" and password "correct-horse"
+    Then the user is signed in
+    And the user sees a log out action in the app
+
+  @req:auth#REQ-012
   Scenario: Log out while already signed out
     Given no user is signed in
     When the user tries to log out
     Then the user is still signed out
-    And the app shows no error
+    And the app shows the login screen with no error message
