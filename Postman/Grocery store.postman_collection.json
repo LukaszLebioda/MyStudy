@@ -1,0 +1,86 @@
+{
+  "info": {
+    "_postman_id": "4e05f25a-4dfa-45b7-b1cb-5bee2b16d7a3",
+    "name": "Grocery store",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "28872099",
+    "_collection_link": "https://go.postman.co/collection/28872099-4e05f25a-4dfa-45b7-b1cb-5bee2b16d7a3?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "documentation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// https://github.com/vdespa/Postman-Complete-Guide-API-Testing/blob/main/simple-grocery-store-api.md"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// https://github.com/vdespa/Postman-Complete-Guide-API-Testing/blob/main/simple-grocery-store-api.md"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://simple-grocery-store-api.click",
+          "protocol": "https",
+          "host": [
+            "simple-grocery-store-api",
+            "click"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// https://github.com/vdespa/Postman-Complete-Guide-API-Testing/blob/main/simple-grocery-store-api.md"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// https://github.com/vdespa/Postman-Complete-Guide-API-Testing/blob/main/simple-grocery-store-api.md"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://simple-grocery-store-api.click/status",
+          "protocol": "https",
+          "host": [
+            "simple-grocery-store-api",
+            "click"
+          ],
+          "path": [
+            "status"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
